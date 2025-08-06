@@ -28,6 +28,10 @@ router.get("/new",(req,res)=>{
 router.get("/:id",wrapAsync(async(req,res,next)=>{
     let {id}=req.params;
     const listing=await Listing.findById(id).populate("reviews");
+    if(!listing){
+        req.flash("error","Listing Not Found");
+        return res.redirect("/listings");
+    }
     res.render("listings/show.ejs",{listing});
 }));
 
@@ -38,6 +42,7 @@ router.post("/",validateListing,wrapAsync(async (req,res,next)=>{
     // if(!req.body.listing) throw new ExpressError(400,"Invalid Listing Data");
      const newListing=new Listing(req.body.listing);    
     await newListing.save();
+    req.flash("success","New Listing Created Successfully");
     res.redirect("/listings");
 }));
 
@@ -45,6 +50,10 @@ router.post("/",validateListing,wrapAsync(async (req,res,next)=>{
 router.get("/:id/edit",wrapAsync(async (req,res,next)=>{
      let {id}=req.params;
     const listing=await Listing.findById(id);
+     if(!listing){
+        req.flash("error","Listing Not Found");
+        return res.redirect("/listings");
+    }
     res.render("listings/edit.ejs",{listing});
 }));
 
@@ -52,6 +61,7 @@ router.get("/:id/edit",wrapAsync(async (req,res,next)=>{
 router.put("/:id" ,validateListing,wrapAsync(async (req,res,next)=>{
     let {id}=req.params;
     await Listing.findByIdAndUpdate(id,{...req.body.listing});
+    req.flash("success","Listing Updated Successfully");
     res.redirect(`/listings/${id}`)
 }));
 
@@ -60,6 +70,7 @@ router.delete("/:id",wrapAsync(async(req,res,next)=>{
     const {id}=req.params;
     let deletedListing=await Listing.findByIdAndDelete(id);
     console.log(deletedListing);
+    req.flash("success","Listing Deleted Successfully");
     res.redirect("/listings");
 }));
 
