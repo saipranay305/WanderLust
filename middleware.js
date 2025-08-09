@@ -2,6 +2,7 @@ const Listing = require("./models/listing");
 const Review = require("./models/review");
 const ExpressError = require("./utils/ExpressError.js");
 const { listingSchema,reviewSchema} = require("./schema.js");
+
 module.exports.isLoggedIn = (req, res, next) => {
     if (!req.isAuthenticated()) {
         //redirectUrl save
@@ -52,8 +53,16 @@ module.exports.validateReview = (req, res, next) => {
 };
 
 module.exports.isReviewAuthor = async (req, res, next) => {
-    let { id,reviewid } = req.params;
-    let review = await Review.findById(id);
+    let { id,reviewId } = req.params;
+
+    let review = await Review.findById(reviewId);
+   
+
+    if (!review) {
+    req.flash("error", "Review not found");
+    return res.redirect(`/listings/${id}`);
+}
+
     if (!review.author.equals(res.locals.currentUser._id)) {
         req.flash("error", "You do not have permission to make changes to this review");
         return res.redirect(`/listings/${id}`);
