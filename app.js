@@ -23,9 +23,6 @@ const listingRouter = require("./routes/listing.js");
 const reviewsRouter = require("./routes/review.js");
 const userRouter = require("./routes/user.js");
 
-
-
-// const MONGO_URL="mongodb://127.0.0.1:27017/wanderlust";
 const MONGO_URL = process.env.ATLASDB_URL;
 
 main().then(()=>{
@@ -52,7 +49,7 @@ const store = MongoStore.create({
     touchAfter: 24 * 3600, // time period in seconds after which the session will be updated
     crypto: {
         secret
-: "thisshouldbeasecret", // secret for encrypting session data
+: process.env.SECRET, // secret for encrypting session data
     },
     ttl: 14 * 24 * 60 * 60 // session expiration time in seconds (14 days)
 });
@@ -62,7 +59,7 @@ store.on("error", function(e) {
 });
 const sessionOptions={
     store,
-    secret: "thisshouldbeasecret",  
+    secret: process.env.SECRET,  
     resave: false,
     saveUninitialized: true,
     cookie:{
