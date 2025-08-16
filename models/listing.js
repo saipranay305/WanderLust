@@ -30,7 +30,7 @@ owner:{
 });
 listingSchema.post("findOneAndDelete",async function(listing){
     if(listing){
-        await Review.deleteMany({
+        await review.deleteMany({
             _id: {
                 $in: listing.reviews
             }
