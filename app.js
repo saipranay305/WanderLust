@@ -13,6 +13,7 @@ const ejsMate = require("ejs-mate");
 const wrapAsync = require("./utils/wrapAsync.js");
 const ExpressError = require("./utils/ExpressError.js");
 const session = require("express-session");
+const MongoStore = require("connect-mongo"); // For storing sessions in MongoDB
 const flash = require("connect-flash");
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
@@ -24,7 +25,9 @@ const userRouter = require("./routes/user.js");
 
 
 
-const MONGO_URL="mongodb://127.0.0.1:27017/wanderlust";
+// const MONGO_URL="mongodb://127.0.0.1:27017/wanderlust";
+const MONGO_URL = process.env.ATLASDB_URL;
+
 main().then(()=>{
     console.log("Connection to database successful");
 }).catch(err=>{
@@ -43,7 +46,22 @@ app.use(methodOverride("_method"));
 app.engine("ejs",ejsMate);
 app.use(express.static(path.join(__dirname,"/public"))); 
 
+
+const store = MongoStore.create({
+    mongoUrl: MONGO_URL,
+    touchAfter: 24 * 3600, // time period in seconds after which the session will be updated
+    crypto: {
+        secret
+: "thisshouldbeasecret", // secret for encrypting session data
+    },
+    ttl: 14 * 24 * 60 * 60 // session expiration time in seconds (14 days)
+});
+
+store.on("error", function(e) {
+    console.log("Error in Mongo Session store error", e);  
+});
 const sessionOptions={
+    store,
     secret: "thisshouldbeasecret",  
     resave: false,
     saveUninitialized: true,
@@ -53,9 +71,11 @@ const sessionOptions={
     },
     httpOnly: true, // Prevents client-side JavaScript from accessing the cookie
 };
-app.get("/",(req,res)=>{
-    res.send("Home Page!")
-});
+// app.get("/",(req,res)=>{
+//     res.send("Home Page!")
+// });
+
+
 
 app.use(session(sessionOptions));
 app.use(flash());
